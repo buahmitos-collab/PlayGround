@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0c1420" />
+    <meta name="description" content="Voxelcraft — an infinite procedural 3D block sandbox with mining, building, animals, zombies, weather-light skies and touch controls." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%230c1420'/%3E%3Cpath d='M10 24l22-12 22 12-22 12z' fill='%2368c84f'/%3E%3Cpath d='M10 24v20l22 12V36z' fill='%238b5a2b'/%3E%3Cpath d='M54 24v20L32 56V36z' fill='%233e9a32'/%3E%3C/svg%3E" />
+    <title>Voxelcraft — Infinite Block Sandbox</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game" aria-label="Voxelcraft 3D world"></canvas>
+
+      <div id="loading" class="screen loading-screen">
+        <div class="loading-inner">
+          <div class="loading-cube">
+            <div class="cube-face top"></div>
+            <div class="cube-face left"></div>
+            <div class="cube-face right"></div>
+          </div>
+          <div class="loading-title">VOXELCRAFT</div>
+          <div class="loading-bar"><div id="loading-fill"></div></div>
+          <div id="loading-status">Carving a fresh world…</div>
+          <div class="loading-tip" id="loading-tip">Tip: press F3 to inspect the world.</div>
+        </div>
+      </div>
+
+      <div id="title" class="screen title-screen hidden">
+        <div class="title-shade"></div>
+        <div class="title-content">
+          <div class="eyebrow"><span></span> A PROCEDURAL VOXEL SANDBOX <span></span></div>
+          <h1>VOXEL<span>CRAFT</span></h1>
+          <p class="tagline">Infinite terrain. Caves, ores, forests and oceans. Build anything, then survive the night.</p>
+          <div class="title-menu">
+            <button id="btn-play" class="btn btn-primary btn-wide">Play World</button>
+            <div class="seed-row">
+              <label for="seed-input">Seed</label>
+              <input id="seed-input" type="text" inputmode="numeric" maxlength="18" spellcheck="false" />
+              <button id="btn-new" class="btn btn-ghost">New World</button>
+            </div>
+            <div id="save-note" class="save-note">No saved world yet — a new one will be generated.</div>
+          </div>
+          <div class="feature-row">
+            <div><strong>∞</strong><span>Endless world</span></div>
+            <div><strong>⛏</strong><span>Mine &amp; build</span></div>
+            <div><strong>☀</strong><span>Day / night</span></div>
+            <div><strong>🐷</strong><span>Living mobs</span></div>
+          </div>
+        </div>
+        <div class="title-footer">
+          <span><b>WASD</b> move</span>
+          <span><b>Space</b> jump / double-tap fly</span>
+          <span><b>LMB</b> mine</span>
+          <span><b>RMB</b> place</span>
+          <span><b>E</b> blocks</span>
+          <span><b>Esc</b> pause</span>
+        </div>
+      </div>
+
+      <div id="hud" class="hidden">
+        <div id="debug" class="debug hidden"></div>
+        <div id="topbar">
+          <div id="clock-chip" class="chip"><span id="clock-icon">☀</span><span id="clock-text">Day 1 · 08:00</span></div>
+          <div class="topbar-right">
+            <div id="coords-chip" class="chip">0, 64, 0</div>
+            <button id="btn-sound" class="icon-btn" title="Toggle sound" aria-label="Toggle sound">♪</button>
+            <button id="btn-fullscreen" class="icon-btn" title="Fullscreen" aria-label="Fullscreen">⛶</button>
+            <button id="btn-pause" class="icon-btn" title="Pause" aria-label="Pause">❚❚</button>
+          </div>
+        </div>
+
+        <div id="crosshair"><i></i><i></i></div>
+        <div id="target-name"></div>
+
+        <div id="bottom">
+          <div id="hearts" aria-label="Health"></div>
+          <div id="airbar" class="hidden"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div id="hotbar"></div>
+          <div id="hotbar-label"></div>
+        </div>
+
+        <div id="mobile-controls">
+          <div id="joystick" aria-label="Movement joystick"><div id="joystick-knob"></div></div>
+          <div class="mobile-actions">
+            <button id="btn-fly" class="touch-btn small" aria-label="Toggle flight">✈</button>
+            <button id="btn-place" class="touch-btn" aria-label="Place block">▣</button>
+            <button id="btn-break" class="touch-btn" aria-label="Mine block">⛏</button>
+            <button id="btn-jump" class="touch-btn" aria-label="Jump">⇧</button>
+            <button id="btn-inv-mobile" class="touch-btn small" aria-label="Open blocks">▦</button>
+          </div>
+        </div>
+
+        <div id="underwater-overlay"></div>
+        <div id="damage-vignette"></div>
+        <div id="toast"></div>
+        <div id="lock-hint" class="hidden">Click the world to capture your mouse</div>
+      </div>
+
+      <div id="pause" class="screen menu-screen hidden">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">WORLD PAUSED</div>
+              <h2>Take a breath.</h2>
+            </div>
+            <button id="btn-close-pause" class="icon-btn" aria-label="Resume">✕</button>
+          </div>
+          <div class="panel-actions">
+            <button id="btn-resume" class="btn btn-primary btn-wide">Resume</button>
+            <button id="btn-settings" class="btn btn-ghost btn-wide">Settings</button>
+          </div>
+          <div id="settings" class="settings hidden">
+            <label class="setting">
+              <span>Render distance <b id="rd-val">6</b></span>
+              <input id="set-render" type="range" min="3" max="9" step="1" value="6" />
+            </label>
+            <label class="setting">
+              <span>Field of view <b id="fov-val">75</b></span>
+              <input id="set-fov" type="range" min="60" max="100" step="1" value="75" />
+            </label>
+            <label class="setting">
+              <span>Mouse sensitivity <b id="sens-val">1.0</b></span>
+              <input id="set-sens" type="range" min="0.3" max="2" step="0.1" value="1" />
+            </label>
+            <label class="setting toggle">
+              <span>Sound &amp; music</span>
+              <input id="set-sound" type="checkbox" checked />
+            </label>
+            <div class="setting-note">Lower render distance on phones for the smoothest framerate.</div>
+          </div>
+          <div class="panel-links">
+            <button id="btn-help" class="link-btn">Controls</button>
+            <button id="btn-reset" class="link-btn danger">Delete this world</button>
+            <button id="btn-quit" class="link-btn">Save &amp; title screen</button>
+          </div>
+          <div id="help" class="help hidden">
+            <div><b>WASD</b> move · <b>Shift</b> sprint · <b>Ctrl</b> sneak</div>
+            <div><b>Space</b> jump · double-tap <b>Space</b> or <b>F</b> to fly</div>
+            <div><b>LMB</b> mine / attack · <b>RMB</b> place · <b>MMB</b> pick block</div>
+            <div><b>1–9</b> or wheel: choose block · <b>E</b>: block catalogue</div>
+            <div><b>F3</b> debug · <b>Esc</b> pause · <b>H</b> help</div>
+            <div class="help-mobile">Touch: left stick moves, drag to look, use the pick / place buttons.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="inventory" class="screen menu-screen hidden">
+        <div class="panel inventory-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">BLOCK CATALOGUE</div>
+              <h2>Build something.</h2>
+            </div>
+            <button id="btn-close-inventory" class="icon-btn" aria-label="Close">✕</button>
+          </div>
+          <div class="inventory-hint">Click a block to put it in hotbar slot <b id="inv-slot">1</b>. Everything is free in creative mode.</div>
+          <div id="inventory-grid" class="inventory-grid"></div>
+          <div class="inventory-footer">
+            <span id="inv-selected-name">Grass Block</span>
+            <button id="btn-inventory-done" class="btn btn-primary">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
