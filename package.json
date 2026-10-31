@@ -1,0 +1,18 @@
+{
+  "name": "aetheria",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Aetheria — a small Genshin-inspired open-world prototype for the browser.",
+  "scripts": {
+    "dev": "vite --port 3002 --host 0.0.0.0",
+    "build": "vite build --base ./",
+    "preview": "vite preview --port 3002 --host 0.0.0.0"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0"
+  }
+}
